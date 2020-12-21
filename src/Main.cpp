@@ -14,7 +14,7 @@ const int fieldHeight = 18;
 const int fieldX = 15;
 const int fieldY = 4;
 const int initialPosX = fieldX;
-const int initialPosY = fieldY;
+const int initialPosY = fieldY-1;
 
 int readMatrix(int& x, int& y)
 {
@@ -25,27 +25,45 @@ void freeze(int currentX, int currentY, string& currentTetro, vector<string>& la
 {
     for(int y=3; y >= 0; y--)
     {
-        int i = fieldHeight - currentY + y;
-        if(!(layers.size() > i + 1))
+        int i = fieldHeight - (currentY + y);
+        if(!(layers.size() > i))
         {
-            layers[i] = "          ";
+            layers.push_back("          ");
         }
         for(int x=0; x < 4; x++)
         {
             char a = currentTetro[readMatrix(x, y)];
             if(a != ' ')
-                layers[i][currentX + x] = a;
+                layers[i-1][(currentX - 1) + x] = a;
         }
     }
 }
 
-bool detectColision(int currentY, string& tetromino)
+bool detectColision(int currentY, string& tetromino, vector<string>& layers)
 {
     for(int y=3; y >= 0; y--)
         for(int x=0; x < 4; x++)
+        {
             if(tetromino[readMatrix(x, y)] != ' ')
+            {
                 if(fieldY + currentY + y == fieldY + fieldHeight)
                     return true;
+                else
+                {
+                    for(int yy=0; yy < layers.size(); yy++)
+                    {
+                        if(fieldY + currentY + y == (fieldY + fieldHeight - 1) - yy)
+                        {
+                            auto v = layers[yy];
+                            for(int i=0; i < v.size(); i++)
+                                if(i == x && v[i] != ' ')
+                                    return true;    
+                        }
+                        
+                    }
+                }
+            }
+        }
     return false;
 }
 
@@ -79,7 +97,10 @@ int main()
         for(int y = 0; y < fieldHeight; y++)
             mvprintw(fieldY + y, fieldX, field.substr(y * fieldWidth, fieldWidth).c_str());
         
-        //for(int i = 0; i < )
+        for(int y=0; y < layers.size(); y++)
+        {
+            mvprintw(fieldY + fieldHeight - (y + 2), fieldX + 1, layers[y].c_str());
+        }
 
         for(int y = 0; y < 4; y++)
             for(int x = 0; x < 4; x++)
@@ -96,10 +117,13 @@ int main()
             tick = 0;
         }
 
-        if(detectColision(currentY + 1, tetromino[currentTetro]))
+        if(detectColision(currentY + 1, tetromino[currentTetro], layers))
         {
+            if(currentY == 0)
+                break;
+            
             freeze(currentX, currentY, tetromino[currentTetro], layers);
-            break;
+            currentY = 0;
         }
 
         refresh();
