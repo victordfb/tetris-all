@@ -41,29 +41,28 @@ void freeze(int currentX, int currentY, string& currentTetro, vector<string>& la
     }
 }
 
-bool detectColision(int currentY, string& tetromino, vector<string>& layers)
+bool detectColision(int currentY, int currentX, string& tetromino, vector<string>& layers)
 {
     for(int y=3; y >= 0; y--)
         for(int x=0; x < 4; x++)
         {
-            if(tetromino[readMatrix(x, y)] != noneSpace)
+            if(currentY + y >= fieldHeight
+                && tetromino[readMatrix(x, y)] != noneSpace)
             {
-                if(fieldY + currentY + y == fieldY + fieldHeight)
-                    return true;
-                else
+                return true;
+            }
+            for(int yy=layers.size() - 1; yy >= 0; yy--)
+            {
+                //Linha do layers é a mesma da tetromino?
+                if(fieldHeight - (yy + 1) == currentY + y)
                 {
-                    for(int yy=0; yy < layers.size(); yy++)
-                    {
-                        if(fieldY + currentY + y == (fieldY + fieldHeight - 1) - yy)
-                        {
-                            auto v = layers[yy];
-                            for(int i=0; i < v.size(); i++)
-                                if(i == x && v[i] != noneSpace)
-                                    return true;    
-                        }
-                        
-                    }
-                }
+                    auto v = layers[yy];
+                    for(int xx=0; xx < v.size(); xx++)
+                        if(xx == currentX + (x - 1) 
+                            && v[xx] != noneSpace 
+                            && tetromino[readMatrix(x, y)] != noneSpace)
+                            return true;
+                }                        
             }
         }
     return false;
@@ -89,7 +88,7 @@ int main()
     int tick = 0;
     int currentY = 0;
     int currentX = 0;
-    int currentTetro = rand() % 2;
+    int currentTetro = rand() % 3;
     int ch;
 
     while(true)
@@ -123,13 +122,14 @@ int main()
             tick = 0;
         }
 
-        if(detectColision(currentY + 1, tetromino[currentTetro], layers))
+        if(detectColision(currentY + 1, currentX, tetromino[currentTetro], layers))
         {
             if(currentY == 0)
                 break;
             
             freeze(currentX, currentY, tetromino[currentTetro], layers);
             currentY = 0;
+            currentTetro = rand() % 3;
         }
 
         refresh();
