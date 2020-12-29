@@ -46,8 +46,9 @@ bool detectColision(int currentY, int currentX, string& tetromino, vector<string
     for(int y=3; y >= 0; y--)
         for(int x=0; x < 4; x++)
         {
-            if(currentY + y >= fieldHeight
-                && tetromino[readMatrix(x, y)] != noneSpace)
+            if(tetromino[readMatrix(x, y)] != noneSpace
+                && (currentY + y >= fieldHeight
+                    || currentX + x <= 0 || currentX + x >= fieldWidth - 1))
             {
                 return true;
             }
@@ -97,10 +98,10 @@ int main()
 
         ch = getch();
 
-        if(ch == KEY_LEFT)
-            currentX = max(0, currentX - 1);
-        else if(ch == KEY_RIGHT)
-            currentX = min(7, currentX + 1);
+        if(ch == KEY_LEFT && !detectColision(currentY, currentX - 1, tetromino[currentTetro], layers))
+            currentX -= 1;
+        else if(ch == KEY_RIGHT && !detectColision(currentY, currentX + 1, tetromino[currentTetro], layers))
+            currentX += 1;
 
         for(int y = 0; y < fieldHeight; y++)
             mvprintw(fieldY + y, fieldX, field.substr(y * fieldWidth, fieldWidth).c_str());
